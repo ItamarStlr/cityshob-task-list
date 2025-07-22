@@ -1,0 +1,132 @@
+﻿<UserControl
+    x:Class="CityShobTaskListClient.Views.UserTaskView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cal="http://www.caliburnproject.org"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="clr-namespace:CityShobTaskListClient.Views"
+    mc:Ignorable="d"
+    d:DesignWidth="600"
+    d:DesignHeight="400">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="Simple To-Do List!" FontSize="18" FontWeight="Bold" 
+                   Margin="10" HorizontalAlignment="Center"/>
+
+        <!-- Task List -->
+        <ListBox Grid.Row="1" x:Name="UserTasks" 
+                 SelectedItem="{Binding SelectedUserTask, Mode=TwoWay}"
+                 Margin="10">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Completion Checkbox -->
+                        <CheckBox Grid.Column="0" 
+                                  IsChecked="{Binding IsCompleted, Mode=TwoWay}"
+                                  Margin="5,0"
+                                  cal:Message.Attach="[Event Checked] = [Action ToggleCompleteUserTask];
+                                                     [Event Unchecked] = [Action ToggleCompleteUserTask]"/>
+                        
+                        <!-- Task Description -->
+                        <TextBlock Grid.Column="1" Text="{Binding Description}" 
+                                   Margin="5,0" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <!-- Strikeout if completed -->
+                                        <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                            <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                            <Setter Property="Foreground" Value="Gray"/>
+                                        </DataTrigger>
+                                        <!-- Italic if selected and editing -->
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True"/>
+                                                <Condition Binding="{Binding DataContext.IsEditingDescription, RelativeSource={RelativeSource AncestorType=ListBox}, Mode=OneWay}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="FontStyle" Value="Italic"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <!-- Lock Indicator -->
+                        <TextBlock Grid.Column="2" Text="🔒" 
+                                   Visibility="{Binding IsLocked, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                   Margin="5,0" VerticalAlignment="Center"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Edit Panel -->
+        <Grid Grid.Row="2" Margin="10">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedUserTask}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Description:" 
+                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+            <TextBox Grid.Row="0" Grid.Column="1" x:Name="TaskDescription"
+                     Text="{Binding SelectedUserTask.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     IsEnabled="{Binding CanEditUserTask}"
+                     cal:Message.Attach="
+                        [Event GotFocus] = [Action BeginEditDescription];
+                        [Event LostFocus] = [Action CancelEditDescription]"
+                     Margin="0,0,10,0" Padding="5"/>
+
+            <Button Grid.Row="0" Grid.Column="2" x:Name="SaveEditDescription" 
+                    Content="📝 Save" Width="70" 
+                    IsEnabled="{Binding CanEditUserTask}"
+                    PreviewMouseDown="EditUserTask_PreviewMouseDown"/>
+            <!--This is an ugly code-behind hack to bind this event to the VM because Caliburn is being difficult...-->
+        </Grid>
+
+        <!-- Toolbar Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" 
+                    HorizontalAlignment="Center" Margin="10">
+
+            <Button x:Name="AddUserTask" Content="📝 New Task" 
+                    Width="100" Margin="5" Padding="5"/>
+
+            <Button x:Name="DeleteUserTask" Content="🗑️ Delete Task" 
+                    Width="100" Margin="5" Padding="5"
+                    IsEnabled="{Binding CanDeleteUserTask}"/>
+        </StackPanel>
+    </Grid>
+
+</UserControl>
