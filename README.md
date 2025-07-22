@@ -3,6 +3,8 @@
 **Description:**
 
  This is an implementation of the to-do list home assignment for CityShob by Itamar Stollar.
+ A short demo of the app can be seen here:
+https://drive.google.com/file/d/1z8T3PxYuo2Uzn39SwK6tXva2im9onEEJ/view?usp=drive_link
  
  It inscludes:
  1. Task list server: a console app for managing user task items from all clients
